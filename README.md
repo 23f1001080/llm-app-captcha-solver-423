@@ -1,12 +1,12 @@
 # Project Title
 
-CAPTCHA Solver
+Multiple CAPTCHA Solver
 
-## Description
+## Description (what the app does)
 
-This web application solves CAPTCHA images using Google's Gemini Vision API. It takes a CAPTCHA image URL as a query parameter, displays the image, and uses the Gemini API to extract the text from the image. The solved CAPTCHA text is then displayed on the page within 15 seconds, along with a loading indicator while processing.
+This web application solves multiple CAPTCHA images using Google's Gemini Vision API. It accepts multiple CAPTCHA image URLs as query parameters (url1, url2, url3, etc.), displays the images side-by-side, and uses the Gemini API to extract the text from each image. The solved CAPTCHA text is then displayed below each image, along with individual loading indicators while processing.
 
-## Setup Instructions
+## Setup Instructions (how to clone and run)
 
 1.  Clone the repository:
 
@@ -17,30 +17,30 @@ This web application solves CAPTCHA images using Google's Gemini Vision API. It 
 
 2.  Open `index.html` in your web browser.
 
-## Usage Guide
+## Usage Guide (how to use the features)
 
-1.  Provide the CAPTCHA image URL as a query parameter in the URL.
+1.  Provide the CAPTCHA image URLs as query parameters in the URL.
 
     ```
-    index.html?url=<CAPTCHA_IMAGE_URL>
+    index.html?url1=<CAPTCHA_IMAGE_URL_1>&url2=<CAPTCHA_IMAGE_URL_2>&url3=<CAPTCHA_IMAGE_URL_3>
     ```
 
-    Replace `<CAPTCHA_IMAGE_URL>` with the actual URL of the CAPTCHA image.
+    Replace `<CAPTCHA_IMAGE_URL_1>`, `<CAPTCHA_IMAGE_URL_2>`, `<CAPTCHA_IMAGE_URL_3>` with the actual URLs of the CAPTCHA images.
 
-2.  The application will display the CAPTCHA image and a loading indicator.
-3.  After processing, the solved CAPTCHA text will be displayed on the page.
+2.  The application will display the CAPTCHA images and individual loading indicators.
+3.  After processing, the solved CAPTCHA text will be displayed below each image.
 
-## Code Explanation
+## Code Explanation (explain the main code logic in index.html, CSS, JS)
 
 ### HTML Structure
 
-The `index.html` file contains the basic HTML structure for the web page. It includes a container div that holds the heading, image, loading indicator, and result section. The CAPTCHA image is displayed using an `<img>` tag, and the solved text is displayed in a `<p>` tag. The loading indicator is a `<div>` that is shown while the API is processing the image.
+The `index.html` file contains the basic HTML structure for the web page. It includes a container div that holds the heading and a `captcha-container` div.  The `captcha-container` dynamically creates divs for each CAPTCHA image, loading indicator, and result section.
 
 ### JavaScript Functions
 
 -   **`getParameterByName(name, url)`**: This function extracts the value of a query parameter from the URL.
--   **`solveCaptcha(imageUrl)`**: This function calls the Gemini Vision API to solve the CAPTCHA. It sends the image URL to the API and returns the extracted text.  It requires an API key to be set.
--   **`main()`**: This function is the main entry point of the script. It gets the image URL from the query parameter, sets the image source, calls `solveCaptcha`, and displays the solved text. It also handles the loading indicator and error cases.
+-   **`solveCaptcha(imageUrl, index)`**: This function calls the Gemini Vision API to solve the CAPTCHA. It sends the image URL to the API and returns the extracted text.  It requires an API key to be set. The index is used to target the correct loading indicator.
+-   **`main()`**: This function is the main entry point of the script. It gets the image URLs from the query parameters, dynamically creates image elements, calls `solveCaptcha` for each image, and displays the solved text. It also handles the loading indicators and error cases.
 
 ### API Calls and Data Processing Logic
 
@@ -49,11 +49,11 @@ The `index.html` file contains the basic HTML structure for the web page. It inc
 -   The API response is parsed to extract the solved CAPTCHA text.
 -   A timeout of 15 seconds is implemented to prevent the application from waiting indefinitely for the API response.
 
-## License
+## License (full MIT License text)
 
 MIT License
 
-Copyright (c) [year] [fullname]
+Copyright (c) 2025 23f1001080
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
