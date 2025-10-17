@@ -3,37 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAPTCHA Solver</title>
+    <title>Multiple CAPTCHA Solver</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>CAPTCHA Solver</h1>
-        <div id="image-container">
-            <img id="captcha-image" src="" alt="CAPTCHA Image">
-            <div id="loading-indicator">Loading...</div>
-        </div>
-        <div id="result-container">
-            <p>Solved CAPTCHA: <span id="captcha-text"></span></p>
-        </div>
+        <h1>Multiple CAPTCHA Solver</h1>
+        <div id="captcha-container"></div>
     </div>
     <script>
-        // Function to extract the URL parameter
+        // Function to extract URL parameters
         function getParameterByName(name, url = window.location.href) {
             name = name.replace(/[[\]]/g, '\\$&');
-            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(url);
             if (!results) return null;
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
-        // Function to call Gemini API
-        async function solveCaptcha(imageUrl) {
+        // Function to call Gemini API and solve CAPTCHA
+        async function solveCaptcha(imageUrl, index) {
             const API_KEY = ''; // Replace with your actual Gemini API key
             const MODEL_NAME = "gemini-1.5-pro-vision-001";
             const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`
-
             const data = {
                 contents: [{
                     parts: [{
@@ -66,46 +59,68 @@
             } catch (error) {
                 console.error("Error calling Gemini API:", error);
                 return "Error: Could not call Gemini API.";
+            } finally {
+                document.getElementById(`loading-indicator-${index}`).style.display = 'none';
             }
         }
 
-        // Main function to handle the CAPTCHA solving process
+        // Main function to handle multiple CAPTCHAs
         async function main() {
-            const imageUrl = getParameterByName('url');
-            const captchaImage = document.getElementById('captcha-image');
-            const captchaText = document.getElementById('captcha-text');
-            const loadingIndicator = document.getElementById('loading-indicator');
+            const captchaContainer = document.getElementById('captcha-container');
+            let i = 1;
+            let imageUrl;
+            while ((imageUrl = getParameterByName(`url${i}`))) {
+                const index = i;
+                const captchaDiv = document.createElement('div');
+                captchaDiv.classList.add('captcha-item');
 
-            if (imageUrl) {
-                captchaImage.src = imageUrl;
+                const imageElement = document.createElement('img');
+                imageElement.src = imageUrl;
+                imageElement.alt = `CAPTCHA Image ${index}`;
+                imageElement.id = `captcha-image-${index}`;
 
-                // Event listener for when the image is loaded
-                captchaImage.onload = async () => {
-                    loadingIndicator.style.display = 'block'; // Show loading indicator
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = `loading-indicator-${index}`;
+                loadingIndicator.classList.add('loading-indicator');
+                loadingIndicator.textContent = 'Loading...';
+
+                const resultElement = document.createElement('p');
+                resultElement.id = `captcha-text-${index}`;
+                resultElement.innerHTML = `CAPTCHA ${index}: <span id="captcha-result-${index}"></span>`;
+
+                captchaDiv.appendChild(imageElement);
+                captchaDiv.appendChild(loadingIndicator);
+                captchaDiv.appendChild(resultElement);
+                captchaContainer.appendChild(captchaDiv);
+
+                imageElement.onload = async () => {
+                    document.getElementById(`loading-indicator-${index}`).style.display = 'flex';
                     try {
                         const solvedText = await Promise.race([
-                            solveCaptcha(imageUrl),
-                            new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error('Timeout')), 15000)
-                            )
+                            solveCaptcha(imageUrl, index),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 15000))
                         ]);
-
-                        captchaText.textContent = solvedText;
+                        document.getElementById(`captcha-result-${index}`).textContent = solvedText;
                     } catch (error) {
-                        console.error("Error solving CAPTCHA:", error);
-                        captchaText.textContent = "Error: " + error.message;
+                        console.error(`Error solving CAPTCHA ${index}:`, error);
+                        document.getElementById(`captcha-result-${index}`).textContent = `Error: ${error.message}`;
                     } finally {
-                        loadingIndicator.style.display = 'none'; // Hide loading indicator
+                        document.getElementById(`loading-indicator-${index}`).style.display = 'none';
                     }
                 };
 
-                captchaImage.onerror = () => {
-                    captchaText.textContent = "Error: Could not load image.";
-                    loadingIndicator.style.display = 'none';
+                imageElement.onerror = () => {
+                    document.getElementById(`captcha-result-${index}`).textContent = "Error: Could not load image.";
+                    document.getElementById(`loading-indicator-${index}`).style.display = 'none';
                 };
-            } else {
-                captchaText.textContent = "Error: Image URL not provided.";
-                loadingIndicator.style.display = 'none';
+
+                i++;
+            }
+
+            if (i === 1) {
+                const noImagesMessage = document.createElement('p');
+                noImagesMessage.textContent = "No CAPTCHA image URLs provided.";
+                captchaContainer.appendChild(noImagesMessage);
             }
         }
 
